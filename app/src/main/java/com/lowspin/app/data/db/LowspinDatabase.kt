@@ -1,0 +1,127 @@
+package com.lowspin.app.data.db
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+
+@Database(
+    entities = [
+        SongEntity::class,
+        PlaylistEntity::class,
+        PlaylistSongCrossRef::class,
+        QueueItemEntity::class,
+        PlaybackStateEntity::class,
+        RecentSearchEntity::class,
+        ExcludedFolderEntity::class,
+        HiddenSongEntity::class
+    ],
+    version = 5,
+    exportSchema = false
+)
+abstract class LowspinDatabase : RoomDatabase() {
+
+    abstract fun songDao(): SongDao
+    abstract fun playlistDao(): PlaylistDao
+    abstract fun queueDao(): QueueDao
+    abstract fun playbackStateDao(): PlaybackStateDao
+    abstract fun recentSearchDao(): RecentSearchDao
+    abstract fun excludedFolderDao(): ExcludedFolderDao
+    abstract fun hiddenSongDao(): HiddenSongDao
+
+    companion object {
+        @Volatile
+        private var instance: LowspinDatabase? = null
+
+        /**
+         * Adds the user-managed folder exclusion list. Existing songs, likes,
+         * play counts, playlists and the saved queue are preserved.
+         */
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `excluded_folders` (
+                        `folderPath` TEXT NOT NULL,
+                        `folderName` TEXT NOT NULL,
+                        `songCount` INTEGER NOT NULL,
+                        `excludedAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`folderPath`)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
+        /**
+         * Adds the hidden-songs list and a stable match key on each scanned row
+         * so removed recordings cannot reappear after a rescan.
+         */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `songs` ADD COLUMN `matchKey` TEXT NOT NULL DEFAULT ''"
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `hidden_songs` (
+                        `songId` INTEGER NOT NULL,
+                        `matchKey` TEXT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `artist` TEXT NOT NULL,
+                        `folderPath` TEXT NOT NULL,
+                        `hiddenAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`songId`)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
+        /** Adds the per-album ambient color cache. No existing data is touched. */
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `album_visuals` (
+                        `albumId` INTEGER NOT NULL,
+                        `dateModified` INTEGER NOT NULL,
+                        `dominantArgb` INTEGER NOT NULL,
+                        `vibrantArgb` INTEGER NOT NULL,
+                        `darkMutedArgb` INTEGER NOT NULL,
+                        `updatedAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`albumId`)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
+        /** Removes the short-lived ambient visual cache; library data is untouched. */
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS `album_visuals`")
+            }
+        }
+
+        fun get(context: Context): LowspinDatabase {
+            return instance ?: synchronized(this) {
+                instance ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    LowspinDatabase::class.java,
+                    "lowspin.db"
+                )
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5
+                    )
+                    .build()
+                    .also { instance = it }
+            }
+        }
+    }
+}
