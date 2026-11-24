@@ -1,7 +1,10 @@
 package com.lowspin.app.media
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Build
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -24,12 +27,19 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @OptIn(UnstableApi::class)
 class PlaybackService : MediaSessionService() {
+
+    companion object {
+        const val NOTIFICATION_CHANNEL_ID = "com.lowspin.app.media"
+        const val FADE_DURATION_MS = 5_000L
+        const val TIMER_TICK_MS = 250L
+    }
 
     private var mediaSession: MediaSession? = null
     private lateinit var player: ExoPlayer
@@ -68,6 +78,11 @@ class PlaybackService : MediaSessionService() {
                     player.seekToNextMediaItem()
                     return
                 }
+                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO &&
+                    container.sleepTimer.consumeTrackEnd()
+                ) {
+                    player.playWhenReady = false
+                }
                 smartShuffle.onPlayed(index)
                 persistProgress()
             }
@@ -77,7 +92,11 @@ class PlaybackService : MediaSessionService() {
             }
         })
 
-        val notificationProvider = DefaultMediaNotificationProvider.Builder(this).build()
+        createNotificationChannel()
+        val notificationProvider = DefaultMediaNotificationProvider.Builder(this)
+            .setChannelId(NOTIFICATION_CHANNEL_ID)
+            .setChannelName(R.string.notification_channel_name)
+            .build()
         notificationProvider.setSmallIcon(R.drawable.ic_stat_vinyl)
         setMediaNotificationProvider(notificationProvider)
 
@@ -93,7 +112,25 @@ class PlaybackService : MediaSessionService() {
             .setCallback(SessionCallback())
             .build()
 
+        container.equalizerManager.attach(player.audioSessionId)
+        startEqualizerObserver()
+        startSleepTimer()
         startPersistLoop()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val channel = NotificationChannel(
+            NOTIFICATION_CHANNEL_ID,
+            getString(R.string.notification_channel_name),
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = getString(R.string.notification_channel_name)
+            lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+            enableVibration(false)
+            setSound(null, null)
+        }
+        getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? =
@@ -108,11 +145,58 @@ class PlaybackService : MediaSessionService() {
     override fun onDestroy() {
         persistJob?.cancel()
         runCatching { runBlocking { saveProgress() } }
+        container.equalizerManager.release()
         mediaSession?.release()
         mediaSession = null
         if (::player.isInitialized) player.release()
         scope.cancel()
         super.onDestroy()
+    }
+
+    private fun startEqualizerObserver() {
+        scope.launch {
+            container.equalizerSettings.enabled.collect { enabled ->
+                container.equalizerManager.apply(
+                    enabled,
+                    container.equalizerSettings.preset.value
+                )
+            }
+        }
+        scope.launch {
+            container.equalizerSettings.preset.collect { preset ->
+                container.equalizerManager.apply(
+                    container.equalizerSettings.enabled.value,
+                    preset
+                )
+            }
+        }
+    }
+
+    private fun startSleepTimer() {
+        scope.launch {
+            container.sleepTimer.endsAt.collect { endsAt ->
+                if (endsAt <= 0L) {
+                    if (::player.isInitialized) player.setVolume(1f)
+                    return@collect
+                }
+                while (isActive && container.sleepTimer.endsAt.value == endsAt) {
+                    val remaining = endsAt - System.currentTimeMillis()
+                    if (remaining <= 0L) {
+                        container.sleepTimer.cancel()
+                        if (::player.isInitialized) {
+                            player.setVolume(1f)
+                            player.playWhenReady = false
+                        }
+                        break
+                    }
+                    if (::player.isInitialized) {
+                        val fade = remaining.coerceAtMost(FADE_DURATION_MS)
+                        player.setVolume(fade.toFloat() / FADE_DURATION_MS)
+                    }
+                    delay(TIMER_TICK_MS)
+                }
+            }
+        }
     }
 
     private fun startPersistLoop() {

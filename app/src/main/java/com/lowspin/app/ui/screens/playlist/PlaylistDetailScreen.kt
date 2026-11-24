@@ -62,11 +62,9 @@ import com.lowspin.app.ui.components.CollageArt
 import com.lowspin.app.ui.components.SongRow
 import com.lowspin.app.ui.components.pressScaleClickable
 import com.lowspin.app.ui.theme.LowspinBackground
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinSurfaceElevated
 import com.lowspin.app.ui.theme.LowspinTextMuted
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 import com.lowspin.app.util.formatTotalDuration
 import kotlin.math.roundToInt
 
@@ -92,7 +90,8 @@ fun PlaylistDetailScreen(
     var localSongs by remember(songs) { mutableStateOf(songs) }
     var draggingId by remember { mutableStateOf<Long?>(null) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
-    val rowHeightPx = with(LocalDensity.current) { 64.dp.toPx() }
+    val rowHeight = com.lowspin.app.ui.settings.LocalListStyle.current.rowHeight
+    val rowHeightPx = with(LocalDensity.current) { rowHeight.toPx() }
 
     Box(Modifier.fillMaxSize()) {
         Box(
@@ -131,7 +130,7 @@ fun PlaylistDetailScreen(
                 Text(
                     text = "Playlist",
                     style = MaterialTheme.typography.labelLarge,
-                    color = LowspinTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f)
                 )
                 Box {
@@ -153,7 +152,7 @@ fun PlaylistDetailScreen(
                                 Icon(
                                     imageVector = Icons.Rounded.Edit,
                                     contentDescription = null,
-                                    tint = LowspinTextSecondary
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
                             onClick = {
@@ -216,7 +215,7 @@ fun PlaylistDetailScreen(
                             Text(
                                 text = "Open any song's menu and choose \u201CAdd to playlist\u201D.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = LowspinTextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -309,7 +308,7 @@ fun PlaylistDetailScreen(
                 Text(
                     text = "\u201C$name\u201D will be removed. The songs stay in your library.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = LowspinTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {
@@ -328,7 +327,7 @@ fun PlaylistDetailScreen(
             dismissButton = {
                 TextButton(
                     onClick = { showDelete = false },
-                    colors = ButtonDefaults.textButtonColors(contentColor = LowspinTextSecondary)
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
                 ) {
                     Text("Cancel")
                 }
@@ -373,7 +372,7 @@ private fun PlaylistHero(
                 }
             },
             style = MaterialTheme.typography.bodySmall,
-            color = LowspinTextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(18.dp))
         Row(
@@ -383,7 +382,7 @@ private fun PlaylistHero(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(LowspinAccent)
+                    .background(MaterialTheme.colorScheme.primary)
                     .pressScaleClickable(onClick = onPlay)
                     .padding(horizontal = 28.dp, vertical = 12.dp),
                 contentAlignment = Alignment.Center
@@ -472,7 +471,7 @@ private fun RenamePlaylistDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(contentColor = LowspinTextSecondary)
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
             ) {
                 Text("Cancel")
             }

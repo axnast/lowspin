@@ -31,12 +31,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinBackground
 import com.lowspin.app.ui.theme.LowspinOnAccent
 import com.lowspin.app.ui.theme.LowspinTextMuted
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 
 @Composable
 fun PermissionScreen(
@@ -97,7 +95,7 @@ fun PermissionScreen(
                     "It needs permission to read your music library. Nothing is uploaded, " +
                     "downloaded or tracked.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = LowspinTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
@@ -125,7 +123,7 @@ fun PermissionScreen(
                 Text(
                     text = "Enable \u201CMusic and audio\u201D in Settings, then come back.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = LowspinTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
             }

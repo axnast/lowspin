@@ -57,11 +57,9 @@ import com.lowspin.app.ui.components.PlaylistCard
 import com.lowspin.app.ui.components.SectionHeader
 import com.lowspin.app.ui.components.SongRow
 import com.lowspin.app.ui.components.pressScaleClickable
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinSurfaceElevated
 import com.lowspin.app.ui.theme.LowspinTextMuted
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 
 @Composable
 fun SearchScreen(
@@ -118,7 +116,7 @@ fun SearchScreen(
                     Icon(
                         imageVector = Icons.Rounded.Search,
                         contentDescription = null,
-                        tint = LowspinTextSecondary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 trailingIcon = {
@@ -127,7 +125,7 @@ fun SearchScreen(
                             Icon(
                                 imageVector = Icons.Rounded.Close,
                                 contentDescription = "Clear search",
-                                tint = LowspinTextSecondary
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -158,7 +156,7 @@ fun SearchScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(2.dp),
-                    color = LowspinTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     trackColor = LowspinSurfaceElevated
                 )
             }
@@ -272,7 +270,7 @@ private fun RecentSearches(
             Text(
                 text = "Clear",
                 style = MaterialTheme.typography.labelMedium,
-                color = LowspinTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
                     .pressScaleClickable(onClick = onClearAll)
@@ -296,7 +294,7 @@ private fun RecentSearches(
                     Icon(
                         imageVector = Icons.Rounded.History,
                         contentDescription = null,
-                        tint = LowspinTextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(6.dp))
@@ -349,7 +347,7 @@ private fun EmptySearchHint() {
         Text(
             text = "Find any song, artist or album stored on this device.",
             style = MaterialTheme.typography.bodySmall,
-            color = LowspinTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }
@@ -381,7 +379,7 @@ private fun NoResults(query: String) {
         Text(
             text = "Check the spelling or try a different word.",
             style = MaterialTheme.typography.bodySmall,
-            color = LowspinTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }

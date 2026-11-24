@@ -38,10 +38,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.lowspin.app.data.art.GradientPlaceholder
 import com.lowspin.app.media.PlayerUiState
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinSurfaceElevated
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -116,7 +114,7 @@ fun MiniPlayer(
                 Text(
                     text = song.artist,
                     style = MaterialTheme.typography.bodySmall,
-                    color = LowspinTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -125,7 +123,7 @@ fun MiniPlayer(
                 Icon(
                     imageVector = if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = if (isLiked) "Remove from Liked Songs" else "Like song",
-                    tint = if (isLiked) LowspinAccent else LowspinTextSecondary
+                    tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             IconButton(onClick = onTogglePlayPause) {
@@ -140,13 +138,13 @@ fun MiniPlayer(
             Modifier
                 .fillMaxWidth()
                 .height(2.dp)
-                .background(LowspinTextSecondary.copy(alpha = 0.30f))
+                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.30f))
         ) {
             Box(
                 Modifier
                     .fillMaxWidth(progress)
                     .height(2.dp)
-                    .background(LowspinAccent)
+                    .background(MaterialTheme.colorScheme.primary)
             )
         }
     }

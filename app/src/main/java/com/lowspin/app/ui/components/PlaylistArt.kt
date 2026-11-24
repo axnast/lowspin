@@ -30,12 +30,10 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinAccentPressed
 import com.lowspin.app.ui.theme.LowspinSurfaceElevated
 import com.lowspin.app.ui.theme.LowspinTextMuted
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 
 /**
  * A 2x2 album-art collage, the way playlist covers are usually presented.
@@ -134,7 +132,7 @@ fun PlaylistCard(
             Text(
                 text = if (songCount == 1) "1 song" else "$songCount songs",
                 style = MaterialTheme.typography.bodySmall,
-                color = if (songCount == 0) LowspinTextMuted else LowspinTextSecondary
+                color = if (songCount == 0) LowspinTextMuted else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -161,7 +159,7 @@ fun LikedSongsCard(
                 .clip(RoundedCornerShape(4.dp))
                 .background(
                     Brush.linearGradient(
-                        listOf(LowspinAccentPressed, LowspinAccent)
+                        listOf(LowspinAccentPressed, MaterialTheme.colorScheme.primary)
                     )
                 ),
             contentAlignment = Alignment.Center
@@ -184,7 +182,7 @@ fun LikedSongsCard(
             Text(
                 text = if (songCount == 1) "1 song" else "$songCount songs",
                 style = MaterialTheme.typography.bodySmall,
-                color = LowspinTextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -214,7 +212,7 @@ fun NewPlaylistCard(
             Icon(
                 imageVector = Icons.Rounded.Add,
                 contentDescription = null,
-                tint = LowspinTextSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(26.dp)
             )
         }

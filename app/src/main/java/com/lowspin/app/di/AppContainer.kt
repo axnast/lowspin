@@ -3,11 +3,16 @@ package com.lowspin.app.di
 import android.content.Context
 import com.lowspin.app.data.art.AlbumArtRepository
 import com.lowspin.app.data.db.LowspinDatabase
+import com.lowspin.app.data.lyrics.EmbeddedId3LyricsSource
+import com.lowspin.app.data.lyrics.LyricsRepository
 import com.lowspin.app.data.repository.MusicRepository
 import com.lowspin.app.data.repository.PlaylistRepository
 import com.lowspin.app.data.scanner.Id3Enricher
 import com.lowspin.app.data.scanner.MediaStoreScanner
+import com.lowspin.app.media.EqualizerManager
+import com.lowspin.app.media.EqualizerSettings
 import com.lowspin.app.media.PlaybackController
+import com.lowspin.app.media.SleepTimerManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,6 +42,13 @@ class AppContainer(context: Context) {
     )
 
     val playlistRepository = PlaylistRepository(database)
+
+    val lyricsRepository = LyricsRepository(EmbeddedId3LyricsSource(appContext))
+
+    val equalizerSettings = EqualizerSettings(appContext)
+    val equalizerManager = EqualizerManager(equalizerSettings, appContext)
+
+    val sleepTimer = SleepTimerManager(appContext)
 
     val playbackController = PlaybackController(
         context = appContext,

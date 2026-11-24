@@ -44,8 +44,14 @@ class MediaStoreScanner(
         var queryRows = 0
         val resolver = context.contentResolver
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        // Some OEMs mark FLAC/WAV/ALAC files as IS_MUSIC=0, so accept known
+        // lossless extensions as well. Durations still filter out short clips.
+        val extensionClauses = LOSSLESS_EXTENSIONS.joinToString(" OR ") { extension ->
+            "LOWER(${MediaStore.Audio.Media.DISPLAY_NAME}) LIKE '%$extension'"
+        }
         val selection =
-            "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DURATION} >= ?"
+            "(${MediaStore.Audio.Media.IS_MUSIC} != 0 OR $extensionClauses) " +
+                "AND ${MediaStore.Audio.Media.DURATION} >= ?"
         val selectionArgs = arrayOf(minDurationMs.toString())
 
         resolver.query(
@@ -221,6 +227,9 @@ class MediaStoreScanner(
     private companion object {
         const val BATCH_SIZE = 500
         const val PROGRESS_EVERY = 50
+        val LOSSLESS_EXTENSIONS = listOf(
+            "%.flac", "%.wav", "%.wave", "%.aif", "%.aiff", "%.m4a", "%.ogg", "%.opus"
+        )
         const val UNKNOWN = "<unknown>"
         const val UNKNOWN_ARTIST = "Unknown artist"
         const val UNKNOWN_ALBUM = "Unknown album"

@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 
 import com.lowspin.app.ui.components.VinylGlyph
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
@@ -65,7 +64,7 @@ fun AboutScreen(onBack: () -> Unit) {
             Text(
                 text = "Lowspin \u00B7 version $version",
                 style = MaterialTheme.typography.bodySmall,
-                color = LowspinTextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(20.dp))
             Text(
@@ -79,7 +78,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 text = "Lowspin has no internet permission. Your music, playlists and listening " +
                     "history never leave your phone.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = LowspinTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }

@@ -2,7 +2,13 @@ package com.lowspin.app.ui.screens.nowplaying
 
 import com.lowspin.app.ui.theme.LowspinOnAccent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,12 +23,15 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Repeat
@@ -40,6 +49,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -58,12 +69,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import com.lowspin.app.data.art.GradientPlaceholder
+import com.lowspin.app.data.lyrics.Lyrics
 import com.lowspin.app.media.PlayerUiState
 import com.lowspin.app.ui.components.AlbumArtImage
 import com.lowspin.app.ui.theme.LowspinBackground
-import com.lowspin.app.ui.theme.LowspinAccent
+import com.lowspin.app.ui.theme.LowspinSurfaceHigh
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 import com.lowspin.app.util.formatDuration
 import kotlin.math.roundToInt
 
@@ -79,7 +90,12 @@ fun NowPlayingScreen(
     onToggleShuffle: () -> Unit,
     onCycleRepeat: () -> Unit,
     onToggleLike: () -> Unit,
-    onMoreClick: () -> Unit
+    onMoreClick: () -> Unit,
+    showLyrics: Boolean,
+    lyrics: Lyrics?,
+    onToggleLyrics: () -> Unit,
+    sleepLabel: String,
+    onSleepClick: () -> Unit
 ) {
     val song = state.currentSong ?: return
 
@@ -139,7 +155,7 @@ fun NowPlayingScreen(
                     Text(
                         text = "PLAYING FROM",
                         style = MaterialTheme.typography.labelSmall,
-                        color = LowspinTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
                     )
                     Text(
@@ -154,14 +170,22 @@ fun NowPlayingScreen(
                     Icon(
                         imageVector = if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                         contentDescription = if (isLiked) "Remove from Liked Songs" else "Like song",
-                        tint = if (isLiked) LowspinAccent else LowspinTextSecondary
+                        tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onToggleLyrics) {
+                    Icon(
+                        imageVector = Icons.Rounded.Lyrics,
+                        contentDescription = if (showLyrics) "Hide lyrics" else "Show lyrics",
+                        tint = if (showLyrics) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 IconButton(onClick = onMoreClick) {
                     Icon(
                         imageVector = Icons.Rounded.MoreVert,
                         contentDescription = "Song options",
-                        tint = LowspinTextSecondary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -172,17 +196,25 @@ fun NowPlayingScreen(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                BoxWithConstraints {
-                    val side = minOf(maxWidth, maxHeight)
-                    AlbumArtImage(
-                        songId = song.id,
-                        seed = song.album.ifBlank { song.title },
-                        modifier = Modifier.size(side),
-                        sizePx = 800,
-                        shape = RoundedCornerShape(8.dp),
-                        showRotatingVinyl = true,
+                if (showLyrics && lyrics != null) {
+                    LyricsCard(
+                        lyrics = lyrics!!,
+                        positionMs = state.positionMs,
                         isPlaying = state.isPlaying
                     )
+                } else {
+                    BoxWithConstraints {
+                        val side = minOf(maxWidth, maxHeight)
+                        AlbumArtImage(
+                            songId = song.id,
+                            seed = song.album.ifBlank { song.title },
+                            modifier = Modifier.size(side),
+                            sizePx = 800,
+                            shape = RoundedCornerShape(8.dp),
+                            showRotatingVinyl = true,
+                            isPlaying = state.isPlaying
+                        )
+                    }
                 }
             }
 
@@ -200,13 +232,42 @@ fun NowPlayingScreen(
             Text(
                 text = song.artist,
                 style = MaterialTheme.typography.bodyMedium,
-                color = LowspinTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(LowspinSurfaceHigh)
+                        .clickable(onClick = onSleepClick)
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Schedule,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = sleepLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
 
             SeekBar(state = state, onSeek = onSeek)
 
@@ -219,7 +280,7 @@ fun NowPlayingScreen(
                     Icon(
                         imageVector = Icons.Rounded.Shuffle,
                         contentDescription = if (state.shuffleEnabled) "Disable shuffle" else "Enable shuffle",
-                        tint = if (state.shuffleEnabled) LowspinAccent else LowspinTextSecondary
+                        tint = if (state.shuffleEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 IconButton(onClick = onPrevious, modifier = Modifier.size(56.dp)) {
@@ -234,7 +295,7 @@ fun NowPlayingScreen(
                     onClick = onTogglePlayPause,
                     modifier = Modifier.size(72.dp),
                     colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = LowspinAccent,
+                        containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = LowspinOnAccent
                     )
                 ) {
@@ -261,15 +322,79 @@ fun NowPlayingScreen(
                         },
                         contentDescription = "Repeat mode",
                         tint = if (state.repeatMode != Player.REPEAT_MODE_OFF) {
-                            LowspinAccent
+                            MaterialTheme.colorScheme.primary
                         } else {
-                            LowspinTextSecondary
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
                 }
             }
 
             Spacer(Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun LyricsCard(
+    lyrics: Lyrics,
+    positionMs: Long,
+    isPlaying: Boolean
+) {
+    val activeIndex = if (lyrics.synced) {
+        lyrics.lines.indexOfLast { it.timeMs <= positionMs }.coerceAtLeast(0)
+    } else {
+        -1
+    }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(activeIndex) {
+        if (activeIndex >= 0 && isPlaying) {
+            listState.animateScrollToItem(activeIndex, scrollOffset = -80)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize(0.96f)
+            .clip(RoundedCornerShape(16.dp))
+            .background(LowspinSurfaceHigh)
+            .padding(16.dp)
+    ) {
+        if (lyrics.synced) {
+            LazyColumn(state = listState) {
+                itemsIndexed(lyrics.lines) { index, line ->
+                    Text(
+                        text = line.text,
+                        style = if (index == activeIndex) {
+                            MaterialTheme.typography.titleSmall
+                        } else {
+                            MaterialTheme.typography.bodyMedium
+                        },
+                        color = if (index == activeIndex) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    )
+                }
+            }
+        } else {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                lyrics.lines.forEach { line ->
+                    Text(
+                        text = line.text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -298,9 +423,9 @@ private fun SeekBar(state: PlayerUiState, onSeek: (Long) -> Unit) {
         },
         valueRange = 0f..duration.toFloat(),
         colors = SliderDefaults.colors(
-            thumbColor = LowspinAccent,
-            activeTrackColor = LowspinAccent,
-            inactiveTrackColor = LowspinTextSecondary.copy(alpha = 0.35f)
+            thumbColor = MaterialTheme.colorScheme.primary,
+            activeTrackColor = MaterialTheme.colorScheme.primary,
+            inactiveTrackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
         )
     )
 
@@ -311,12 +436,12 @@ private fun SeekBar(state: PlayerUiState, onSeek: (Long) -> Unit) {
         Text(
             text = formatDuration(if (dragging) dragValue.toLong() else state.positionMs),
             style = MaterialTheme.typography.labelSmall,
-            color = LowspinTextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = formatDuration(state.durationMs),
             style = MaterialTheme.typography.labelSmall,
-            color = LowspinTextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

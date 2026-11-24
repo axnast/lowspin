@@ -1,9 +1,11 @@
 package com.lowspin.app.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,19 +19,24 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.lowspin.app.data.art.GradientPlaceholder
 import com.lowspin.app.data.db.SongEntity
+import com.lowspin.app.ui.settings.LocalListStyle
 import com.lowspin.app.ui.theme.LowspinTextMuted
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 import com.lowspin.app.util.formatDuration
 
 /**
- * The single list row used everywhere a song appears. All parameters are stable
- * so Compose can skip unchanged rows while a long list scrolls.
+ * The single list row used everywhere a song appears. Parameters are stable so
+ * Compose skips unchanged rows while a long list scrolls. The glow is a static
+ * radial gradient from a cached color — no blur, no per-frame work.
  */
 @Composable
 fun SongRow(
@@ -42,21 +49,48 @@ fun SongRow(
     dragHandleModifier: Modifier? = null,
     showDuration: Boolean = true
 ) {
+    val style = LocalListStyle.current
+    val glowColor = remember(song.id, song.dominantColorArgb) {
+        if (song.dominantColorArgb != 0) {
+            Color(song.dominantColorArgb)
+        } else {
+            Color(GradientPlaceholder.primaryColor(song.album.ifBlank { song.title }))
+        }
+    }
+    val handleSize = if (style.largeTouchTargets) 48.dp else 44.dp
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(style.rowHeight)
             .pressScaleClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(start = 16.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AlbumArtImage(
-            songId = song.id,
-            seed = song.album.ifBlank { song.title },
-            modifier = Modifier.size(48.dp),
-            sizePx = 128
-        )
-        Spacer(Modifier.width(12.dp))
+        if (style.showArt) {
+            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.radialGradient(
+                                listOf(
+                                    glowColor.copy(alpha = 0.32f),
+                                    glowColor.copy(alpha = 0.10f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+                AlbumArtImage(
+                    songId = song.id,
+                    seed = song.album.ifBlank { song.title },
+                    modifier = Modifier.size(48.dp),
+                    sizePx = 128
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+        }
         Column(Modifier.weight(1f)) {
             Text(
                 text = song.title,
@@ -69,7 +103,7 @@ fun SongRow(
             Text(
                 text = song.artist,
                 style = MaterialTheme.typography.bodySmall,
-                color = LowspinTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -79,7 +113,7 @@ fun SongRow(
             Text(
                 text = formatDuration(song.durationMs),
                 style = MaterialTheme.typography.labelSmall,
-                color = LowspinTextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         if (onMoreClick != null) {
@@ -87,14 +121,14 @@ fun SongRow(
                 Icon(
                     imageVector = Icons.Rounded.MoreVert,
                     contentDescription = "Song options",
-                    tint = LowspinTextSecondary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
         }
         if (dragHandleModifier != null) {
             Box(
-                modifier = dragHandleModifier.size(44.dp),
+                modifier = dragHandleModifier.size(handleSize),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

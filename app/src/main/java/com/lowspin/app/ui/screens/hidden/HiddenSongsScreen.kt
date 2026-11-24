@@ -30,7 +30,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lowspin.app.ui.components.pressScaleClickable
 import com.lowspin.app.ui.theme.LowspinTextMuted
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 
 @Composable
 fun HiddenSongsScreen(
@@ -68,7 +67,7 @@ fun HiddenSongsScreen(
                 Text(
                     text = "Restore all",
                     style = MaterialTheme.typography.labelMedium,
-                    color = LowspinTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .pressScaleClickable(onClick = viewModel::restoreAll)
                         .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -79,7 +78,7 @@ fun HiddenSongsScreen(
         Text(
             text = "These songs stay on your phone. Restoring one brings it back into your library on the next scan.",
             style = MaterialTheme.typography.bodySmall,
-            color = LowspinTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
 
@@ -107,7 +106,7 @@ fun HiddenSongsScreen(
                 Text(
                     text = "Use a song's menu and choose \u201CRemove from Lowspin\u201D to hide it here.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = LowspinTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
@@ -133,7 +132,7 @@ fun HiddenSongsScreen(
                             Text(
                                 text = song.artist,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = LowspinTextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -142,7 +141,7 @@ fun HiddenSongsScreen(
                             Icon(
                                 imageVector = Icons.Rounded.Restore,
                                 contentDescription = "Restore",
-                                tint = LowspinTextSecondary
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }

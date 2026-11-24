@@ -43,13 +43,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lowspin.app.data.db.SongEntity
 import com.lowspin.app.ui.components.SongRow
 import com.lowspin.app.ui.components.pressScaleClickable
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinAccentPressed
 import com.lowspin.app.ui.theme.LowspinBackground
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinSurfaceElevated
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 import com.lowspin.app.util.formatTotalDuration
 
 @Composable
@@ -97,7 +94,7 @@ fun LikedSongsScreen(
                 Text(
                     text = "Liked Songs",
                     style = MaterialTheme.typography.labelLarge,
-                    color = LowspinTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -130,7 +127,7 @@ fun LikedSongsScreen(
                             Text(
                                 text = "Tap the heart on any song to keep it here.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = LowspinTextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -178,7 +175,7 @@ private fun LikedHero(
                 .size(180.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(
-                    Brush.linearGradient(listOf(LowspinAccentPressed, LowspinAccent))
+                    Brush.linearGradient(listOf(LowspinAccentPressed, MaterialTheme.colorScheme.primary))
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -205,7 +202,7 @@ private fun LikedHero(
                 }
             },
             style = MaterialTheme.typography.bodySmall,
-            color = LowspinTextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(18.dp))
         Row(
@@ -215,7 +212,7 @@ private fun LikedHero(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(LowspinAccent)
+                    .background(MaterialTheme.colorScheme.primary)
                     .pressScaleClickable(onClick = onPlay)
                     .padding(horizontal = 28.dp, vertical = 12.dp),
                 contentAlignment = Alignment.Center

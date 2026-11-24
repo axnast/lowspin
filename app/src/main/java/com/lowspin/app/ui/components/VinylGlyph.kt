@@ -1,5 +1,6 @@
 package com.lowspin.app.ui.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -12,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinBackground
 
 /**
@@ -35,6 +35,9 @@ fun VinylGlyph(
         label = "vinylSpin"
     )
 
+    val accent = MaterialTheme.colorScheme.primary
+    val label = LowspinBackground
+
     Canvas(
         modifier = modifier.graphicsLayer {
             rotationZ = if (rotating) angle else 0f
@@ -44,7 +47,7 @@ fun VinylGlyph(
         val center = androidx.compose.ui.geometry.Offset(this.size.width / 2f, this.size.height / 2f)
         val radius = size / 2f
 
-        drawCircle(color = LowspinAccent, radius = radius, center = center)
+        drawCircle(color = accent, radius = radius, center = center)
         drawCircle(
             color = LowspinBackground.copy(alpha = 0.3f),
             radius = radius * 0.80f,
@@ -58,6 +61,6 @@ fun VinylGlyph(
             style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx())
         )
         drawCircle(color = LowspinBackground, radius = radius * 0.34f, center = center)
-        drawCircle(color = LowspinAccent, radius = radius * 0.085f, center = center)
+        drawCircle(color = accent, radius = radius * 0.085f, center = center)
     }
 }

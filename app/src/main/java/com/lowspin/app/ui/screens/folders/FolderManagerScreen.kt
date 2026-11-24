@@ -46,11 +46,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lowspin.app.data.scanner.ScanState
 import com.lowspin.app.ui.components.SectionHeader
 import com.lowspin.app.ui.components.VinylGlyph
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinSurfaceElevated
 import com.lowspin.app.ui.theme.LowspinTextMuted
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 
 @Composable
 fun FolderManagerScreen(
@@ -96,7 +94,7 @@ fun FolderManagerScreen(
                     Icon(
                         imageVector = Icons.Rounded.Refresh,
                         contentDescription = "Rescan",
-                        tint = LowspinTextSecondary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -105,7 +103,7 @@ fun FolderManagerScreen(
         Text(
             text = "Only turn on folders that contain music. Hidden folders are skipped on every scan \u2014 perfect for call recordings and voice notes.",
             style = MaterialTheme.typography.bodySmall,
-            color = LowspinTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
 
@@ -133,7 +131,7 @@ fun FolderManagerScreen(
                 Text(
                     text = "Rescan the library after adding music to your phone.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = LowspinTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(20.dp))
                 Button(
@@ -202,7 +200,7 @@ private fun FolderRowItem(row: FolderRow, onToggle: () -> Unit) {
         Icon(
             imageVector = if (row.excluded) Icons.Rounded.FolderOff else Icons.Rounded.Folder,
             contentDescription = null,
-            tint = if (row.excluded) LowspinTextMuted else LowspinTextSecondary,
+            tint = if (row.excluded) LowspinTextMuted else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(22.dp)
         )
         Spacer(Modifier.width(12.dp))
@@ -210,7 +208,7 @@ private fun FolderRowItem(row: FolderRow, onToggle: () -> Unit) {
             Text(
                 text = row.folderName,
                 style = MaterialTheme.typography.titleSmall,
-                color = if (row.excluded) LowspinTextSecondary else LowspinTextPrimary,
+                color = if (row.excluded) MaterialTheme.colorScheme.onSurfaceVariant else LowspinTextPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -234,8 +232,8 @@ private fun FolderRowItem(row: FolderRow, onToggle: () -> Unit) {
             onCheckedChange = { onToggle() },
             colors = SwitchDefaults.colors(
                 checkedThumbColor = LowspinOnAccent,
-                checkedTrackColor = LowspinAccent,
-                uncheckedThumbColor = LowspinTextSecondary,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 uncheckedTrackColor = LowspinSurfaceElevated,
                 uncheckedBorderColor = LowspinTextMuted
             )

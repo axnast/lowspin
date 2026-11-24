@@ -50,10 +50,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.lowspin.app.data.db.PlaylistSummary
 import com.lowspin.app.data.db.SongEntity
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinSurfaceElevated
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +113,7 @@ fun SongOptionsSheet(
                         Text(
                             text = song.artist,
                             style = MaterialTheme.typography.bodySmall,
-                            color = LowspinTextSecondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -127,7 +125,7 @@ fun SongOptionsSheet(
                 SheetActionRow(
                     icon = if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                     label = if (isLiked) "Remove from Liked Songs" else "Add to Liked Songs",
-                    tint = if (isLiked) LowspinAccent else LowspinTextPrimary,
+                    tint = if (isLiked) MaterialTheme.colorScheme.primary else LowspinTextPrimary,
                     onClick = onToggleLike
                 )
                 SheetActionRow(
@@ -195,7 +193,7 @@ private fun PlaylistPicker(
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
                 contentDescription = "Back",
-                tint = LowspinTextSecondary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.width(8.dp))
             Column {
@@ -207,7 +205,7 @@ private fun PlaylistPicker(
                 Text(
                     text = song.title,
                     style = MaterialTheme.typography.bodySmall,
-                    color = LowspinTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -228,7 +226,7 @@ private fun PlaylistPicker(
                     Text(
                         text = "No playlists yet. Create one to start collecting songs.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = LowspinTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
                     )
                 }
@@ -272,7 +270,7 @@ private fun PlaylistPicker(
                                 "${playlist.songCount} songs"
                             },
                             style = MaterialTheme.typography.bodySmall,
-                            color = LowspinTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -348,7 +346,7 @@ fun CreatePlaylistDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(contentColor = LowspinTextSecondary)
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
             ) {
                 Text("Cancel")
             }

@@ -20,8 +20,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
@@ -31,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,6 +60,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.lowspin.app.data.db.SongEntity
+import com.lowspin.app.data.lyrics.Lyrics
 import com.lowspin.app.di.AppContainer
 import com.lowspin.app.ui.components.CreatePlaylistDialog
 import com.lowspin.app.ui.components.MiniPlayer
@@ -75,9 +80,14 @@ import com.lowspin.app.ui.screens.playlist.PlaylistDetailScreen
 import com.lowspin.app.ui.screens.playlist.PlaylistViewModel
 import com.lowspin.app.ui.screens.search.SearchScreen
 import com.lowspin.app.ui.screens.search.SearchViewModel
+import com.lowspin.app.ui.screens.settings.SettingsScreen
+import com.lowspin.app.ui.settings.LocalAppearance
+import com.lowspin.app.ui.settings.LocalListStyle
+import com.lowspin.app.ui.settings.LowspinListStyle
 import com.lowspin.app.ui.theme.LowspinBackground
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
+import com.lowspin.app.util.formatDuration
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -143,6 +153,18 @@ fun LowspinApp(container: AppContainer) {
     val libraryViewModel: LibraryViewModel = viewModel(
         factory = LibraryViewModel.factory(container)
     )
+    val appearance = LocalAppearance.current
+    val compact by appearance.compact.collectAsStateWithLifecycle()
+    val showArt by appearance.showArt.collectAsStateWithLifecycle()
+    val largeTargets by appearance.largeTargets.collectAsStateWithLifecycle()
+    val reduceMotion by appearance.reduceMotion.collectAsStateWithLifecycle()
+    val listStyle = remember(compact, showArt, largeTargets) {
+        LowspinListStyle(
+            rowHeight = if (compact) 56.dp else 64.dp,
+            showArt = showArt,
+            largeTouchTargets = largeTargets
+        )
+    }
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -160,12 +182,33 @@ fun LowspinApp(container: AppContainer) {
     }
 
     var showNowPlaying by rememberSaveable { mutableStateOf(false) }
+    var showLyrics by rememberSaveable { mutableStateOf(false) }
+    var lyrics by remember { mutableStateOf<Lyrics?>(null) }
+    var showSleepDialog by remember { mutableStateOf(false) }
+    var sleepNow by remember { mutableStateOf(System.currentTimeMillis()) }
+    val sleepEndsAt by container.sleepTimer.endsAt.collectAsStateWithLifecycle()
+    val sleepMode by container.sleepTimer.mode.collectAsStateWithLifecycle()
     var optionsSong by remember { mutableStateOf<SongEntity?>(null) }
     var songToHide by remember { mutableStateOf<SongEntity?>(null) }
     var showCreatePlaylistDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         libraryViewModel.onLibraryAccessGranted()
+    }
+
+    LaunchedEffect(showLyrics, currentSongId) {
+        lyrics = if (showLyrics) {
+            currentSong?.let { container.lyricsRepository.load(it) }
+        } else {
+            null
+        }
+    }
+
+    LaunchedEffect(sleepEndsAt) {
+        while (sleepEndsAt > 0L) {
+            delay(1_000L)
+            sleepNow = System.currentTimeMillis()
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -179,6 +222,12 @@ fun LowspinApp(container: AppContainer) {
                 notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+    }
+
+    val sleepLabel = when {
+        sleepMode == "track" -> "End of track"
+        sleepEndsAt > 0L -> formatDuration((sleepEndsAt - sleepNow).coerceAtLeast(0L))
+        else -> "Sleep timer"
     }
 
     // Stable callback identities keep screen composables skippable while the
@@ -208,6 +257,7 @@ fun LowspinApp(container: AppContainer) {
     val onOpenFolders = remember(navController) { { navController.navigate("folders") } }
     val onOpenHidden = remember(navController) { { navController.navigate("hidden") } }
     val onOpenAbout = remember(navController) { { navController.navigate("about") } }
+    val onOpenSettings = remember(navController) { { navController.navigate("settings") } }
     val onRequestCreatePlaylist = remember { { showCreatePlaylistDialog = true } }
     val onRefresh = remember(libraryViewModel) { { libraryViewModel.refreshLibrary() } }
     val onTogglePlayPause = remember(libraryViewModel) { { libraryViewModel.togglePlayPause() } }
@@ -228,6 +278,7 @@ fun LowspinApp(container: AppContainer) {
         optionsSong = null
     }
 
+    CompositionLocalProvider(LocalListStyle provides listStyle) {
     Box(
         Modifier
             .fillMaxSize()
@@ -273,7 +324,8 @@ fun LowspinApp(container: AppContainer) {
                         onSearchClick = onOpenSearch,
                         onManageFolders = onOpenFolders,
                         onHiddenSongs = onOpenHidden,
-                        onAbout = onOpenAbout
+                        onAbout = onOpenAbout,
+                        onSettings = onOpenSettings
                     )
                 }
                 composable("search") {
@@ -331,17 +383,26 @@ fun LowspinApp(container: AppContainer) {
                 composable("about") {
                     AboutScreen(onBack = onBack)
                 }
+                composable("settings") {
+                    SettingsScreen(container = container, onBack = onBack)
+                }
             }
         }
 
         AnimatedVisibility(
             visible = showNowPlaying && currentSong != null,
             enter = slideInVertically(
-                animationSpec = tween(durationMillis = 260, easing = EaseOut)
-            ) { fullHeight -> fullHeight } + fadeIn(tween(200)),
+                animationSpec = tween(
+                    durationMillis = if (reduceMotion) 0 else 260,
+                    easing = EaseOut
+                )
+            ) { fullHeight -> fullHeight } + fadeIn(tween(if (reduceMotion) 0 else 200)),
             exit = slideOutVertically(
-                animationSpec = tween(durationMillis = 240, easing = EaseOut)
-            ) { fullHeight -> fullHeight } + fadeOut(tween(180))
+                animationSpec = tween(
+                    durationMillis = if (reduceMotion) 0 else 240,
+                    easing = EaseOut
+                )
+            ) { fullHeight -> fullHeight } + fadeOut(tween(if (reduceMotion) 0 else 180))
         ) {
             NowPlayingScreen(
                 state = playerState,
@@ -354,9 +415,15 @@ fun LowspinApp(container: AppContainer) {
                 onToggleShuffle = onToggleShuffle,
                 onCycleRepeat = onCycleRepeat,
                 onToggleLike = onTogglePlayerLike,
-                onMoreClick = { currentSong?.let(onOpenOptions) }
+                onMoreClick = { currentSong?.let(onOpenOptions) },
+                showLyrics = showLyrics,
+                lyrics = lyrics,
+                onToggleLyrics = { showLyrics = !showLyrics },
+                sleepLabel = sleepLabel,
+                onSleepClick = { showSleepDialog = true }
             )
         }
+    }
     }
 
     optionsSong?.let { song ->
@@ -417,7 +484,7 @@ fun LowspinApp(container: AppContainer) {
                         "future scans. The file stays on your phone and can be restored " +
                         "from Hidden songs.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = LowspinTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {
@@ -436,7 +503,7 @@ fun LowspinApp(container: AppContainer) {
             dismissButton = {
                 TextButton(
                     onClick = { songToHide = null },
-                    colors = ButtonDefaults.textButtonColors(contentColor = LowspinTextSecondary)
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
                 ) {
                     Text("Cancel")
                 }
@@ -450,6 +517,69 @@ fun LowspinApp(container: AppContainer) {
             onCreate = { name ->
                 showCreatePlaylistDialog = false
                 libraryViewModel.createPlaylist(name) { id -> navController.navigate("playlist/$id") }
+            }
+        )
+    }
+
+    if (showSleepDialog) {
+        AlertDialog(
+            onDismissRequest = { showSleepDialog = false },
+            title = {
+                Text(
+                    text = "Sleep timer",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = LowspinTextPrimary
+                )
+            },
+            text = {
+                Column {
+                    listOf(5, 10, 15, 30, 45, 60).forEach { minutes ->
+                        Text(
+                            text = "$minutes minutes",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = LowspinTextPrimary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    container.sleepTimer.startMinutes(minutes)
+                                    showSleepDialog = false
+                                }
+                                .padding(vertical = 10.dp)
+                        )
+                    }
+                    Text(
+                        text = "End of current track",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = LowspinTextPrimary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                container.sleepTimer.startEndOfTrack()
+                                showSleepDialog = false
+                            }
+                            .padding(vertical = 10.dp)
+                    )
+                    if (container.sleepTimer.isActive) {
+                        Text(
+                            text = "Cancel timer",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    container.sleepTimer.cancel()
+                                    showSleepDialog = false
+                                }
+                                .padding(vertical = 10.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showSleepDialog = false }) {
+                    Text("Close")
+                }
             }
         )
     }

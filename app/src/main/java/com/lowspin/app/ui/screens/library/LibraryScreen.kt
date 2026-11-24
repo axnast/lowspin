@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,11 +63,9 @@ import com.lowspin.app.ui.components.SectionHeader
 import com.lowspin.app.ui.components.SongRow
 import com.lowspin.app.ui.components.VinylGlyph
 import com.lowspin.app.ui.components.pressScaleClickable
-import com.lowspin.app.ui.theme.LowspinAccent
 import com.lowspin.app.ui.theme.LowspinSurfaceElevated
 import com.lowspin.app.ui.theme.LowspinTextMuted
 import com.lowspin.app.ui.theme.LowspinTextPrimary
-import com.lowspin.app.ui.theme.LowspinTextSecondary
 
 @Composable
 fun LibraryScreen(
@@ -84,7 +83,8 @@ fun LibraryScreen(
     onSearchClick: () -> Unit,
     onManageFolders: () -> Unit,
     onHiddenSongs: () -> Unit,
-    onAbout: () -> Unit
+    onAbout: () -> Unit,
+    onSettings: () -> Unit
 ) {
     val scanning = scanState is ScanState.Scanning || scanState is ScanState.Enriching
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -105,7 +105,8 @@ fun LibraryScreen(
             onRefresh = onRefresh,
             onManageFolders = onManageFolders,
             onHiddenSongs = onHiddenSongs,
-            onAbout = onAbout
+            onAbout = onAbout,
+            onSettings = onSettings
         )
 
         ScanBanner(scanState)
@@ -149,7 +150,8 @@ private fun LibraryHeader(
     onRefresh: () -> Unit,
     onManageFolders: () -> Unit,
     onHiddenSongs: () -> Unit,
-    onAbout: () -> Unit
+    onAbout: () -> Unit,
+    onSettings: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -166,7 +168,7 @@ private fun LibraryHeader(
             Text(
                 text = if (songCount == 0) "Local music" else "$songCount songs",
                 style = MaterialTheme.typography.bodySmall,
-                color = LowspinTextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         IconButton(onClick = onSearchClick) {
@@ -181,7 +183,7 @@ private fun LibraryHeader(
                 Icon(
                     imageVector = Icons.Rounded.MoreVert,
                     contentDescription = "More options",
-                    tint = LowspinTextSecondary
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             DropdownMenu(
@@ -196,7 +198,7 @@ private fun LibraryHeader(
                         Icon(
                             imageVector = Icons.Rounded.Refresh,
                             contentDescription = null,
-                            tint = if (scanning) LowspinTextMuted else LowspinTextSecondary
+                            tint = if (scanning) LowspinTextMuted else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     onClick = {
@@ -210,7 +212,7 @@ private fun LibraryHeader(
                         Icon(
                             imageVector = Icons.Rounded.FolderOff,
                             contentDescription = null,
-                            tint = LowspinTextSecondary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     onClick = {
@@ -224,7 +226,7 @@ private fun LibraryHeader(
                         Icon(
                             imageVector = Icons.Rounded.HideSource,
                             contentDescription = null,
-                            tint = LowspinTextSecondary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     onClick = {
@@ -238,12 +240,26 @@ private fun LibraryHeader(
                         Icon(
                             imageVector = Icons.Rounded.Info,
                             contentDescription = null,
-                            tint = LowspinTextSecondary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     onClick = {
                         onMenuOpenChange(false)
                         onAbout()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Settings", color = LowspinTextPrimary) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Settings,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    onClick = {
+                        onMenuOpenChange(false)
+                        onSettings()
                     }
                 )
             }
@@ -267,7 +283,7 @@ private fun LibraryTabs(selected: Int, onSelect: (Int) -> Unit) {
 @Composable
 private fun TabPill(label: String, selected: Boolean, onClick: () -> Unit) {
     val background by animateColorAsState(
-        targetValue = if (selected) LowspinAccent else LowspinSurfaceElevated,
+        targetValue = if (selected) MaterialTheme.colorScheme.primary else LowspinSurfaceElevated,
         animationSpec = tween(180),
         label = "tabBackground"
     )
@@ -354,7 +370,7 @@ private fun PlaylistsTab(
                 Text(
                     text = "Create a playlist to collect the songs you love.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = LowspinTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
@@ -410,7 +426,7 @@ private fun FilteredBanner(count: Int, onManage: () -> Unit) {
         Text(
             text = "Manage",
             style = MaterialTheme.typography.labelSmall,
-            color = LowspinTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
                 .clip(RoundedCornerShape(50))
                 .pressScaleClickable(onClick = onManage)
@@ -435,7 +451,7 @@ private fun ScanBanner(scanState: ScanState) {
                         .fillMaxWidth()
                         .height(2.dp)
                         .clip(RoundedCornerShape(2.dp)),
-                    color = LowspinTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     trackColor = LowspinSurfaceElevated
                 )
                 Spacer(Modifier.height(6.dp))
@@ -446,7 +462,7 @@ private fun ScanBanner(scanState: ScanState) {
                         "Scanning library\u2026"
                     },
                     style = MaterialTheme.typography.labelSmall,
-                    color = LowspinTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -464,14 +480,14 @@ private fun ScanBanner(scanState: ScanState) {
                         .fillMaxWidth()
                         .height(2.dp)
                         .clip(RoundedCornerShape(2.dp)),
-                    color = LowspinTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     trackColor = LowspinSurfaceElevated
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = "Reading tags\u2026 ${scanState.done} of ${scanState.total}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = LowspinTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -501,7 +517,7 @@ private fun LoadingState() {
         Text(
             text = "Looking for music on this device\u2026",
             style = MaterialTheme.typography.bodyMedium,
-            color = LowspinTextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -531,7 +547,7 @@ private fun EmptyLibrary(onRefresh: () -> Unit) {
         Text(
             text = "Copy audio files to your phone, then rescan. Lowspin only reads local files.",
             style = MaterialTheme.typography.bodyMedium,
-            color = LowspinTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(24.dp))
