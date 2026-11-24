@@ -11,6 +11,10 @@ A fully offline music player for Android. No account, no internet, no ads. Lowsp
 - **Library Organization:** Custom playlists and playback queue management.
 - **Metadata Support:** Automatically reads song title, artist, album, and cover art from ID3 tags.
 
+## Images
+<img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/e70eb0ab-5774-4e48-b001-9c561b9c5b4a" /> <img width="717" height="1600" alt="image" src="https://github.com/user-attachments/assets/1a3ae210-7e87-41b0-88f6-c0933b66bcdd" /> 
+
+
 ## Download & Install (Android APK)
 
 Lowspin is distributed exclusively through GitHub Releases and is not on the Google Play Store.
