@@ -21,7 +21,7 @@ Lowspin is distributed exclusively through GitHub Releases and is not on the Goo
 4. Your local MP3 library will load automatically.
 
 ## Build from Source
-
+Only needed if you want to compile the APK yourself on a PC—regular users can grab it from Releases.
 ### Requirements
 - JDK 17+
 - Android SDK Command-Line Tools (with `ANDROID_HOME` set)
