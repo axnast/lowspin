@@ -1,76 +1,86 @@
 # Lowspin
 
-A fully offline music player for Android. No account, no internet, no ads. It plays the MP3 files already on your phone, with a clean, Spotify-inspired interface.
-
-<!-- Add screenshots here: ![Home](docs/home.png) ![Now Playing](docs/now-playing.png) -->
+A fully offline music player for Android. No account, no internet, no ads. Lowspin plays the local MP3 files already on your phone inside a clean, Spotify-inspired interface.
 
 ## Features
 
-- Plays local MP3 files straight from your device storage
-- 100% offline, no network permission needed
-- Spotify-inspired UI: home, library, search, and a full-screen now-playing view
-- Playback controls: play/pause, next/previous, seek, shuffle, repeat
-- Background playback with notification and lock-screen controls
-- Playlists and queue management
-- Reads song title, artist, album, and cover art from ID3 tags
+- **100% Offline:** Plays local MP3 files directly from device storage with zero network permissions required.
+- **Spotify-Inspired UI:** Clean navigation across Home, Library, Search, and a full-screen Now Playing view.
+- **Full Playback Controls:** Play/pause, next/previous, seek, shuffle, and repeat.
+- **Background Playback:** Persistent notification and lock-screen media controls.
+- **Library Organization:** Custom playlists and playback queue management.
+- **Metadata Support:** Automatically reads song title, artist, album, and cover art from ID3 tags.
 
-## Download
+## Download & Install (Android APK)
 
-Grab the latest APK from the [Releases](https://github.com/axnast/lowspin/releases) page.
+Lowspin is distributed exclusively through GitHub Releases and is not on the Google Play Store.
 
-1. Download `lowspin.apk` to your phone
-2. Open it and allow **Install from unknown sources** if Android asks
-3. Launch Lowspin and grant access to your music files
-4. Your library appears automatically
+1. Download the latest `lowspin.apk` from the [Releases](https://github.com/axnast/lowspin/releases) page.
+2. Open the APK file on your Android device and allow **Install from unknown sources** if prompted.
+3. Launch **Lowspin** and grant permission to access your local audio/music files.
+4. Your local MP3 library will load automatically.
 
-> Lowspin is not on the Play Store. It is distributed only through GitHub Releases.
+## Build from Source
 
-## Build from source
+### Requirements
+- JDK 17+
+- Android SDK Command-Line Tools (with `ANDROID_HOME` set)
+
+### Steps
 
 ```bash
-git clone https://github.com/axnast/lowspin.git
+git clone [https://github.com/axnast/lowspin.git](https://github.com/axnast/lowspin.git)
 cd lowspin
 ```
 
+Build the APK using the Gradle wrapper:
+
+**Windows:**
+```cmd
+gradlew.bat assembleDebug
+```
+
+**macOS / Linux:**
 ```bash
-# edit to match your setup
-npm install
-npm run build
+./gradlew assembleDebug
 ```
 
-The APK ends up in the build output folder. Adjust this section to match how you actually build it.
+The generated APK will be in `app/build/outputs/apk/debug/` (use `assembleRelease` for a release build).
 
-## Tech
+## Tech Stack
 
-- Built with Google AI Studio (Gemini)
-- Android, local file playback
-- <!-- list your framework / libraries here -->
+- **Platform:** Native Android (Kotlin, Gradle Kotlin DSL)
+- **Audio:** Local storage scanning & ID3 tag parsing
+- **Development:** Co-developed with DeepSeek
 
-## Project structure
+## Project Structure
 
-```
+```text
 lowspin/
-├── src/          # app source
-├── docs/         # screenshots
-├── README.md
-└── LICENSE
+├── app/                   # Android application source & resources
+├── gradle/                # Gradle wrapper and version catalog
+├── build.gradle.kts       # Top-level Gradle build configuration
+├── settings.gradle.kts    # Project module settings
+├── gradle.properties      # Gradle environment settings
+├── PLAN.md                # Development notes and planning
+└── README.md              # Project documentation
 ```
 
 ## Roadmap
 
 - [ ] Equalizer
 - [ ] Sleep timer
-- [ ] Lyrics support (.lrc files)
+- [ ] Lyrics support (`.lrc` files)
 - [ ] Custom themes and accent colors
 - [ ] Folder-based browsing
 
 ## Disclaimer
 
-Lowspin is an independent personal project and is not affiliated with or endorsed by Spotify.
+Lowspin is an independent personal project and is not affiliated with, endorsed by, or connected to Spotify.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT — see the [LICENSE](LICENSE) file for details.
 
 ## Author
 
