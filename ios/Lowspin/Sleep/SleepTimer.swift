@@ -23,9 +23,13 @@ final class SleepTimer: ObservableObject {
         if ActivityAuthorizationInfo().areActivitiesEnabled {
             Task { @MainActor in
                 do {
+                    let content = ActivityContent(
+                        state: SleepTimerAttributes.ContentState(endDate: end, label: label),
+                        staleDate: nil
+                    )
                     activity = try await Activity.request(
                         attributes: SleepTimerAttributes(startedAt: Date()),
-                        contentState: SleepTimerAttributes.ContentState(endDate: end, label: label),
+                        content: content,
                         pushType: nil
                     )
                 } catch {
@@ -59,7 +63,7 @@ final class SleepTimer: ObservableObject {
         let current = activity
         activity = nil
         Task { @MainActor in
-            await current?.end(using: nil, dismissalPolicy: .immediate)
+            await current?.end(nil, dismissalPolicy: .immediate)
         }
     }
 }
