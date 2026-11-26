@@ -41,7 +41,7 @@ targets:
       ENABLE_PREVIEWS: YES
 
   LowspinWidget:
-    type: app_extension
+    type: app-extension
     platform: iOS
     sources:
       - path: Lowspin/Widgets
