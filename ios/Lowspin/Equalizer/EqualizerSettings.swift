@@ -51,7 +51,7 @@ final class EqualizerSettings: ObservableObject {
         customLevels = parsed.count == 5 ? parsed : [0, 0, 0, 0, 0]
     }
 
-    static func name(_ id: String) -> String {
+    nonisolated static func name(_ id: String) -> String {
         switch id {
         case "classical": return "Classical"
         case "heavym": return "Heavy M"

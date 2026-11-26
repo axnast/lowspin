@@ -348,7 +348,7 @@ final class AudioEngine: ObservableObject {
             MPMediaItemPropertyPlaybackDuration: duration,
             MPNowPlayingInfoPropertyElapsedPlaybackTime: elapsed,
             MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0,
-            MPNowPlayingInfoPropertyMediaType: MPMediaType.audio.rawValue
+            MPNowPlayingInfoPropertyMediaType: MPMediaType.anyAudio.rawValue
         ]
         if let data = track.artworkData, let image = UIImage(data: data) {
             info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
