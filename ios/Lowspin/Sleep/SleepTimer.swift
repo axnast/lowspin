@@ -27,7 +27,7 @@ final class SleepTimer: ObservableObject {
                         state: SleepTimerAttributes.ContentState(endDate: end, label: label),
                         staleDate: nil
                     )
-                    activity = try await Activity.request(
+                    activity = try Activity.request(
                         attributes: SleepTimerAttributes(startedAt: Date()),
                         content: content,
                         pushType: nil
