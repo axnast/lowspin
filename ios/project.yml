@@ -1,0 +1,74 @@
+name: Lowspin
+
+options:
+  deploymentTarget:
+    iOS: "17.0"
+  bundleIdPrefix: com.lowspin
+  createIntermediateGroups: true
+
+targets:
+  Lowspin:
+    type: application
+    platform: iOS
+    sources:
+      - path: Lowspin
+        excludes:
+          - Resources
+          - Widgets
+    resources:
+      - path: Lowspin/Resources
+    dependencies:
+      - target: LowspinWidget
+        embed: true
+    info:
+      properties:
+        CFBundleDisplayName: Lowspin
+        UIBackgroundModes:
+          - audio
+        NSSupportsLiveActivities: true
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UILaunchScreen: {}
+        ITSAppUsesNonExemptEncryption: false
+        UIRequiredDeviceCapabilities:
+          - arm64
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.lowspin.app
+      SWIFT_VERSION: "5.0"
+      SWIFT_STRICT_CONCURRENCY: minimal
+      TARGETED_DEVICE_FAMILY: "1,2"
+      IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+      ENABLE_PREVIEWS: YES
+
+  LowspinWidget:
+    type: app_extension
+    platform: iOS
+    sources:
+      - path: Lowspin/Widgets
+      - path: Lowspin/Shared
+    info:
+      properties:
+        CFBundleDisplayName: Lowspin Timer
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.lowspin.app.widget
+      SWIFT_VERSION: "5.0"
+      SWIFT_STRICT_CONCURRENCY: minimal
+      IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+
+schemes:
+  Lowspin:
+    build:
+      targets:
+        Lowspin: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

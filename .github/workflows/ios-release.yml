@@ -1,0 +1,77 @@
+name: iOS TestFlight build
+
+# Unsigned simulator checks live in ios.yml. This workflow creates a signed
+# .ipa for TestFlight. It needs an Apple Developer Program membership and four
+# repository secrets:
+#   APPLE_TEAM_ID         your team ID
+#   APPLE_CERT_P12        base64 of a Distribution certificate .p12
+#   APPLE_CERT_PASSWORD   the .p12 password
+#   PROFILE_APP           base64 of the "Lowspin App Store" provisioning profile
+#   PROFILE_WIDGET        base64 of the "Lowspin Widget App Store" profile
+# Update ExportOptions.plist with the same team ID and profile names.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  archive:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate --spec project.yml
+
+      - name: Import signing certificate
+        run: |
+          echo "${{ secrets.APPLE_CERT_P12 }}" | base64 --decode > /tmp/lowspin.p12
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import /tmp/lowspin.p12 -k build.keychain \
+            -P "${{ secrets.APPLE_CERT_PASSWORD }}" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+
+      - name: Import provisioning profiles
+        run: |
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "${{ secrets.PROFILE_APP }}" | base64 --decode \
+            > "$HOME/Library/MobileDevice/Provisioning Profiles/lowspin-app.mobileprovision"
+          echo "${{ secrets.PROFILE_WIDGET }}" | base64 --decode \
+            > "$HOME/Library/MobileDevice/Provisioning Profiles/lowspin-widget.mobileprovision"
+
+      - name: Set team ID in export options
+        working-directory: ios
+        run: |
+          sed -i '' "s/REPLACE_WITH_TEAM_ID/${{ secrets.APPLE_TEAM_ID }}/" ExportOptions.plist
+
+      - name: Archive
+        working-directory: ios
+        run: |
+          xcodebuild archive \
+            -project Lowspin.xcodeproj \
+            -scheme Lowspin \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Lowspin.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+            clean archive
+
+      - name: Export IPA
+        working-directory: ios
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/Lowspin.xcarchive \
+            -exportPath build/export \
+            -exportOptionsPlist ExportOptions.plist
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: lowspin-testflight
+          path: ios/build/export/*.ipa

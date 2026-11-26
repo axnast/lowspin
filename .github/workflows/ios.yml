@@ -1,0 +1,49 @@
+name: iOS build check
+
+# This machine is Windows and has no Xcode, so the only build verification
+# available is a macOS runner. It produces an unsigned simulator build.
+# Running the app still requires a Mac + Xcode + a device/simulator.
+
+on:
+  push:
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios.yml"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate --spec project.yml
+
+      - name: Build (unsigned iOS Simulator)
+        working-directory: ios
+        run: |
+          xcodebuild \
+            -project Lowspin.xcodeproj \
+            -scheme Lowspin \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-log
+          path: ios/build/Logs
+          if-no-files-found: ignore
