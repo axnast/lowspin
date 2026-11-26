@@ -21,6 +21,7 @@ targets:
       - target: LowspinWidget
         embed: true
     info:
+      path: build/App-Info.plist
       properties:
         CFBundleDisplayName: Lowspin
         UIBackgroundModes:
@@ -47,6 +48,7 @@ targets:
       - path: Lowspin/Widgets
       - path: Lowspin/Shared
     info:
+      path: build/Widget-Info.plist
       properties:
         CFBundleDisplayName: Lowspin Timer
         NSExtension:
