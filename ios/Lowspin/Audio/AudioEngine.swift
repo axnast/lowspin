@@ -196,7 +196,7 @@ final class AudioEngine: ObservableObject {
         var stale = false
         let folder = try URL(
             resolvingBookmarkData: track.folderBookmark,
-            options: [.withSecurityScope],
+            options: [],
             relativeTo: nil,
             bookmarkDataIsStale: &stale
         )

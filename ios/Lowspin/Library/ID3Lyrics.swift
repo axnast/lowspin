@@ -18,7 +18,7 @@ enum ID3Lyrics {
         var stale = false
         guard let folder = try? URL(
             resolvingBookmarkData: track.folderBookmark,
-            options: [.withSecurityScope],
+            options: [],
             relativeTo: nil,
             bookmarkDataIsStale: &stale
         ), folder.startAccessingSecurityScopedResource() else { return .none }

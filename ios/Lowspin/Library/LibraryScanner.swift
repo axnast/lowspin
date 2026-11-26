@@ -13,23 +13,12 @@ enum LibraryScanner {
         guard folder.startAccessingSecurityScopedResource() else { return [] }
         defer { folder.stopAccessingSecurityScopedResource() }
 
-        let fileManager = FileManager.default
-        guard let enumerator = fileManager.enumerator(
-            at: folder,
-            includingPropertiesForKeys: [.isRegularFileKey],
-            options: [.skipsHiddenFiles],
-            errorHandler: nil
-        ) else { return [] }
-
-        var files: [URL] = []
-        for case let url as URL in enumerator where supportedExtensions.contains(url.pathExtension.lowercased()) {
-            files.append(url)
-        }
+        let files = audioFiles(in: folder)
 
         let bookmark: Data
         do {
             bookmark = try folder.bookmarkData(
-                options: [.withSecurityScope, .minimalBookmark],
+                options: [.minimalBookmark],
                 includingResourceValuesForKeys: nil,
                 relativeTo: nil
             )
@@ -45,6 +34,25 @@ enum LibraryScanner {
             }
         }
         return drafts
+    }
+
+    /// Enumeration is synchronous so it stays off the Swift 6 async-domain
+    /// warning and doesn't block the main actor (scanner runs on a detached task).
+    private static func audioFiles(in folder: URL) -> [URL] {
+        guard let enumerator = FileManager.default.enumerator(
+            at: folder,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles],
+            errorHandler: nil
+        ) else { return [] }
+
+        var files: [URL] = []
+        while let url = enumerator.nextObject() as? URL {
+            if supportedExtensions.contains(url.pathExtension.lowercased()) {
+                files.append(url)
+            }
+        }
+        return files
     }
 
     private static func makeDraft(file: URL, folder: URL, bookmark: Data) async -> TrackDraft? {

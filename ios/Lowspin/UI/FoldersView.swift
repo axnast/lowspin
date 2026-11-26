@@ -24,7 +24,7 @@ struct FoldersView: View {
         var stale = false
         return try? URL(
             resolvingBookmarkData: bookmark,
-            options: [.withSecurityScope],
+            options: [],
             relativeTo: nil,
             bookmarkDataIsStale: &stale
         )
